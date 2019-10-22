@@ -1,0 +1,79 @@
+{
+    "name": "clang-tidy",
+    "displayName": "Clang-Tidy",
+    "description": "Integrates clang-tidy into VS Code",
+    "version": "0.1.0",
+    "publisher": "notskm",
+    "repository": {
+        "url": "https://github.com/notskm/vscode-clang-tidy"
+    },
+    "engines": {
+        "vscode": "^1.39.0"
+    },
+    "categories": [
+        "Linters"
+    ],
+    "activationEvents": [
+        "onLanguage:cpp",
+        "onCommand:clang-tidy.lintFile",
+        "workspaceContains:**/.clang-tidy"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "commands": [
+            {
+                "command": "clang-tidy.lintFile",
+                "title": "Clang-Tidy: Lint File"
+            }
+        ],
+        "configuration": {
+            "title": "clang-tidy",
+            "properties": {
+                "clang-tidy.executable": {
+                    "type": "string",
+                    "default": "clang-tidy",
+                    "description": "Path to the clang-tidy executable"
+                },
+                "clang-tidy.checks": {
+                    "type": "array",
+                    "default": [],
+                    "description": "List of globs to enable or disable checks"
+                },
+                "clang-tidy.compilerArgs": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Extra arguments to append to the compiler command line"
+                },
+                "clang-tidy.compilerArgsBefore": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Extra arguments to prepend to the compiler command line"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile",
+        "test": "node ./out/test/runTest.js",
+        "package": "vsce package",
+        "deploy": "vsce publish -p"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.6",
+        "@types/node": "^10.12.21",
+        "@types/vscode": "^1.39.0",
+        "glob": "^7.1.4",
+        "mocha": "^6.1.4",
+        "tslint": "^5.12.1",
+        "typescript": "^3.3.1",
+        "vsce": "^1.68.0",
+        "vscode-test": "^1.2.0"
+    },
+    "dependencies": {
+        "js-yaml": "^3.13.1"
+    }
+}
