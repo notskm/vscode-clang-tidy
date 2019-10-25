@@ -3,3 +3,5 @@
 - Initial release
 
 ## [Unreleased]
+
+- Added: Log info in the output panel
