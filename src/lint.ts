@@ -1,18 +1,18 @@
 import * as vscode from 'vscode';
 import { runClangTidy, collectDiagnostics } from './tidy';
 
-export async function lintActiveTextDocument() {
+export async function lintActiveTextDocument(loggingChannel: vscode.OutputChannel) {
     if (vscode.window.activeTextEditor === undefined) {
         return { document: undefined, diagnostics: [] };
     }
 
     return {
         document: vscode.window.activeTextEditor.document,
-        diagnostics: await lintTextDocument(vscode.window.activeTextEditor.document)
+        diagnostics: await lintTextDocument(vscode.window.activeTextEditor.document, loggingChannel)
     };
 }
 
-export async function lintTextDocument(file: vscode.TextDocument) {
+export async function lintTextDocument(file: vscode.TextDocument, loggingChannel: vscode.OutputChannel) {
     if (!['cpp'].includes(file.languageId)) {
         return [];
     }
@@ -26,6 +26,6 @@ export async function lintTextDocument(file: vscode.TextDocument) {
         return [];
     }
 
-    const clangTidyOut = await runClangTidy([file.uri.fsPath], workspaceFolder.uri.fsPath);
+    const clangTidyOut = await runClangTidy([file.uri.fsPath], workspaceFolder.uri.fsPath, loggingChannel);
     return collectDiagnostics(clangTidyOut, file);
 }

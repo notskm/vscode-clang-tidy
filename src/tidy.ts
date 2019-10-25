@@ -2,7 +2,7 @@ import { spawn } from 'child_process';
 import * as vscode from 'vscode';
 import * as jsYaml from 'js-yaml';
 
-export function runClangTidy(files: string[], workingDirectory: string = '.'): Promise<string> {
+export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel): Promise<string> {
     return new Promise((resolve, reject) => {
         let args: string[] = [...files, '--export-fixes=-'];
 
@@ -36,6 +36,9 @@ export function runClangTidy(files: string[], workingDirectory: string = '.'): P
 
         const process = spawn(clangTidy, args, { 'cwd': workingDirectory });
 
+        loggingChannel.appendLine(`> ${clangTidy} ${args.join(' ')}`);
+        loggingChannel.appendLine(`Working Directory: ${workingDirectory}`);
+
         if (process.pid) {
             let output = '';
 
@@ -44,12 +47,17 @@ export function runClangTidy(files: string[], workingDirectory: string = '.'): P
             });
 
             process.stdout.on('end', () => {
+                loggingChannel.appendLine(output);
                 resolve(output);
             });
 
             process.on('error', err => {
+                loggingChannel.appendLine(err.message);
                 reject(err);
             });
+        }
+        else {
+            loggingChannel.appendLine('Failed to run clang-tidy');
         }
     });
 }

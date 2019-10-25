@@ -9,13 +9,16 @@ export function activate(context: vscode.ExtensionContext) {
     let diagnosticCollection = vscode.languages.createDiagnosticCollection();
     subscriptions.push(diagnosticCollection);
 
+    let loggingChannel = vscode.window.createOutputChannel('Clang-Tidy');
+    subscriptions.push(loggingChannel);
+
     async function lintAndSetDiagnostics(file: vscode.TextDocument) {
-        const diagnostics = await lintTextDocument(file);
+        const diagnostics = await lintTextDocument(file, loggingChannel);
         diagnosticCollection.set(file.uri, diagnostics);
     }
 
     async function lintActiveDocAndSetDiagnostics() {
-        const diag = await lintActiveTextDocument();
+        const diag = await lintActiveTextDocument(loggingChannel);
         if (diag.document) {
             diagnosticCollection.set(diag.document.uri, diag.diagnostics);
         }
