@@ -85,6 +85,27 @@ interface ClangTidyReplacements {
     ReplacementText: string;
 }
 
+interface ClangTidyYaml {
+    MainSourceFile: string;
+    Diagnostics: [{
+        DiagnosticName: string;
+
+        // Old style diagnostic info. For older versions of clang-tidy
+        Message?: string;
+        FilePath?: string;
+        FileOffset?: number;
+        Replacements?: ClangTidyReplacements[];
+
+        // Newer style diagnostic info. For newer versions of clang-tidy
+        DiagnosticMessage?: {
+            Message: string;
+            FilePath: string;
+            FileOffset: number;
+            Replacements: ClangTidyReplacements[];
+        };
+    }];
+}
+
 function tidyOutputAsObject(clangTidyOutput: string) {
     const regex = /(^\-\-\-(.*\n)*\.\.\.$)/gm;
     const match = regex.exec(clangTidyOutput);
@@ -93,16 +114,48 @@ function tidyOutputAsObject(clangTidyOutput: string) {
         return { MainSourceFile: "", Diagnostics: [] };
     }
 
-    let tidyResults = jsYaml.safeLoad(match[0]) as ClangTidyResults;
+    const tidyResults = jsYaml.safeLoad(match[0]) as ClangTidyYaml;
+
+    let structuredResults: ClangTidyResults = {
+        "MainSourceFile": tidyResults.MainSourceFile,
+        "Diagnostics": []
+    };
+
+    tidyResults.Diagnostics.forEach(diag => {
+        if (diag.DiagnosticMessage) {
+            structuredResults.Diagnostics.push({
+                "DiagnosticName": diag.DiagnosticName,
+                "DiagnosticMessage": {
+                    "Message": diag.DiagnosticMessage.Message,
+                    "FilePath": diag.DiagnosticMessage.FilePath,
+                    "FileOffset": diag.DiagnosticMessage.FileOffset,
+                    "Replacements": diag.DiagnosticMessage.Replacements,
+                    "Severity": vscode.DiagnosticSeverity.Warning
+                }
+            });
+        }
+        else if (diag.Message && diag.FilePath && diag.FileOffset) {
+            structuredResults.Diagnostics.push({
+                "DiagnosticName": diag.DiagnosticName,
+                "DiagnosticMessage": {
+                    "Message": diag.Message,
+                    "FilePath": diag.FilePath,
+                    "FileOffset": diag.FileOffset,
+                    "Replacements": diag.Replacements ? diag.Replacements : [],
+                    "Severity": vscode.DiagnosticSeverity.Warning
+                }
+            });
+        }
+    });
+
+    let diagnostics = structuredResults.Diagnostics;
+
     const severities = collectDiagnosticSeverities(clangTidyOutput);
-
-    let diagnostics = tidyResults.Diagnostics;
-
-    for (let i = 0; i < diagnostics.length && i < severities.length; i++) {
+    for (let i = 0; i < diagnostics.length || i < severities.length; i++) {
         diagnostics[i].DiagnosticMessage.Severity = severities[i];
     }
 
-    return tidyResults;
+    return structuredResults;
 }
 
 export function collectDiagnostics(clangTidyOutput: string, document: vscode.TextDocument) {
