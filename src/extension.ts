@@ -24,13 +24,19 @@ export function activate(context: vscode.ExtensionContext) {
         }
     }
 
-    subscriptions.push(workspace.onDidSaveTextDocument(lintAndSetDiagnostics));
+    subscriptions.push(workspace.onDidSaveTextDocument(doc => {
+        if (workspace.getConfiguration('clang-tidy').get('lintOnSave')) {
+            lintAndSetDiagnostics(doc);
+        }
+    }));
     subscriptions.push(workspace.onDidOpenTextDocument(lintAndSetDiagnostics));
     subscriptions.push(workspace.onDidCloseTextDocument(doc => diagnosticCollection.delete(doc.uri)));
 
     subscriptions.push(workspace.onDidSaveTextDocument(doc => {
-        if (doc.uri.scheme === 'file' && doc.uri.fsPath.endsWith('.clang-tidy')) {
-            workspace.textDocuments.forEach(lintAndSetDiagnostics);
+        if (workspace.getConfiguration('clang-tidy').get('lintOnSave')) {
+            if (doc.uri.scheme === 'file' && doc.uri.fsPath.endsWith('.clang-tidy')) {
+                workspace.textDocuments.forEach(lintAndSetDiagnostics);
+            }
         }
     }));
 

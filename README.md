@@ -26,6 +26,7 @@ This extension contributes the following settings:
 * `clang-tidy.checks`: List of checks to enable or disable
 * `clang-tidy.compilerArgs`: List of arguments to append to the compiler command line
 * `clang-tidy.compilerArgsBefore`: List of arguments to prepend to the compiler command line
+* `clang-tidy.lintOnSave`: Whether or not to lint files when they are saved
 
 ## Extension Commands
 

@@ -18,3 +18,5 @@ equivalent to 0.2.0
 - Initial release
 
 ## [Unreleased]
+
+- Added: `clang-tidy.lintOnSave` option to disable automatic linting on file save

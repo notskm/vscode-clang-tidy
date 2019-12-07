@@ -48,6 +48,11 @@
                     "type": "array",
                     "default": [],
                     "description": "Extra arguments to prepend to the compiler command line"
+                },
+                "clang-tidy.lintOnSave": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Automatically lint files when they are saved"
                 }
             }
         }
