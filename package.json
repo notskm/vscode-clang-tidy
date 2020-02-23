@@ -53,6 +53,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Automatically lint files when they are saved"
+                },
+                "clang-tidy.buildPath": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to the build folder"
                 }
             }
         }

@@ -30,6 +30,14 @@ export function runClangTidy(files: string[], workingDirectory: string, loggingC
             args.push(`--extra-arg-before=${arg}`);
         });
 
+        const buildPath = vscode.workspace
+            .getConfiguration('clang-tidy')
+            .get('buildPath') as string;
+
+        if (buildPath.length > 0) {
+            args.push(`-p="${buildPath}"`);
+        }
+
         const clangTidy = vscode.workspace
             .getConfiguration('clang-tidy')
             .get('executable') as string;

@@ -22,3 +22,6 @@ equivalent to 0.2.0
 - Initial release
 
 ## [Unreleased]
+
+- Added: `clang-tidy.buildPath` option to tell clang-tidy where the build
+directory is. This is equivalent to `clang-tidy -p ...`
