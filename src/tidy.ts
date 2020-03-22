@@ -3,47 +3,47 @@ import * as vscode from 'vscode';
 import * as jsYaml from 'js-yaml';
 
 function clangTidyArgs(files: string[]) {
-        let args: string[] = [...files, '--export-fixes=-'];
+    let args: string[] = [...files, '--export-fixes=-'];
 
-        const checks = vscode.workspace
-            .getConfiguration('clang-tidy')
-            .get('checks') as Array<string>;
+    const checks = vscode.workspace
+        .getConfiguration('clang-tidy')
+        .get('checks') as Array<string>;
 
-        if (checks.length > 0) {
-            args.push(`--checks=${checks.join(',')}`);
-        }
+    if (checks.length > 0) {
+        args.push(`--checks=${checks.join(',')}`);
+    }
 
-        const compilerArgs = vscode.workspace
-            .getConfiguration('clang-tidy')
-            .get('compilerArgs') as Array<string>;
+    const compilerArgs = vscode.workspace
+        .getConfiguration('clang-tidy')
+        .get('compilerArgs') as Array<string>;
 
-        compilerArgs.forEach(arg => {
-            args.push(`--extra-arg=${arg}`);
-        });
+    compilerArgs.forEach(arg => {
+        args.push(`--extra-arg=${arg}`);
+    });
 
-        const compilerArgsBefore = vscode.workspace
-            .getConfiguration('clang-tidy')
-            .get('compilerArgsBefore') as Array<string>;
+    const compilerArgsBefore = vscode.workspace
+        .getConfiguration('clang-tidy')
+        .get('compilerArgsBefore') as Array<string>;
 
-        compilerArgsBefore.forEach(arg => {
-            args.push(`--extra-arg-before=${arg}`);
-        });
+    compilerArgsBefore.forEach(arg => {
+        args.push(`--extra-arg-before=${arg}`);
+    });
 
-        const buildPath = vscode.workspace
-            .getConfiguration('clang-tidy')
-            .get('buildPath') as string;
+    const buildPath = vscode.workspace
+        .getConfiguration('clang-tidy')
+        .get('buildPath') as string;
 
-        if (buildPath.length > 0) {
-            args.push(`-p="${buildPath}"`);
-        }
+    if (buildPath.length > 0) {
+        args.push(`-p="${buildPath}"`);
+    }
 
     return args;
 }
 
 function clangTidyExecutable() {
     return vscode.workspace
-            .getConfiguration('clang-tidy')
-            .get('executable') as string;
+        .getConfiguration('clang-tidy')
+        .get('executable') as string;
 }
 
 export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel): Promise<string> {
@@ -56,26 +56,21 @@ export function runClangTidy(files: string[], workingDirectory: string, loggingC
         loggingChannel.appendLine(`> ${clangTidy} ${args.join(' ')}`);
         loggingChannel.appendLine(`Working Directory: ${workingDirectory}`);
 
-        if (process.pid) {
-            let output = '';
+        let output = '';
 
-            process.stdout.on('data', data => {
-                output += data;
-            });
+        process.stdout.on('data', data => {
+            output += data;
+        });
 
-            process.stdout.on('end', () => {
-                loggingChannel.appendLine(output);
-                resolve(output);
-            });
+        process.on('exit', code => {
+            loggingChannel.appendLine(`clang-tidy exited with code ${code}`);
+            resolve(output);
+        });
 
-            process.on('error', err => {
-                loggingChannel.appendLine(err.message);
-                reject(err);
-            });
-        }
-        else {
-            loggingChannel.appendLine('Failed to run clang-tidy');
-        }
+        process.on('error', err => {
+            loggingChannel.appendLine(err.message);
+            reject(err);
+        });
     });
 }
 
