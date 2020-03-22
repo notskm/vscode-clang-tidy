@@ -2,8 +2,7 @@ import { spawn } from 'child_process';
 import * as vscode from 'vscode';
 import * as jsYaml from 'js-yaml';
 
-export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel): Promise<string> {
-    return new Promise((resolve, reject) => {
+function clangTidyArgs(files: string[]) {
         let args: string[] = [...files, '--export-fixes=-'];
 
         const checks = vscode.workspace
@@ -38,9 +37,19 @@ export function runClangTidy(files: string[], workingDirectory: string, loggingC
             args.push(`-p="${buildPath}"`);
         }
 
-        const clangTidy = vscode.workspace
+    return args;
+}
+
+function clangTidyExecutable() {
+    return vscode.workspace
             .getConfiguration('clang-tidy')
             .get('executable') as string;
+}
+
+export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const clangTidy = clangTidyExecutable();
+        const args = clangTidyArgs(files);
 
         const process = spawn(clangTidy, args, { 'cwd': workingDirectory });
 
