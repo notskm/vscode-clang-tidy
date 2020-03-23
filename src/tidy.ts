@@ -63,6 +63,7 @@ export function runClangTidy(files: string[], workingDirectory: string, loggingC
         });
 
         process.on('exit', code => {
+            loggingChannel.appendLine(output);
             loggingChannel.appendLine(`clang-tidy exited with code ${code}`);
             resolve(output);
         });
