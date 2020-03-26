@@ -39,6 +39,7 @@ jobs:
         npm ci
         npm run compile
         npm test
+        npm run package
       env:
         CI: true
         DISPLAY: ':99.0'
