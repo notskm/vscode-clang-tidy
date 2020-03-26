@@ -2,7 +2,7 @@
     "name": "clang-tidy",
     "displayName": "Clang-Tidy",
     "description": "Integrates clang-tidy into VS Code",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "publisher": "notskm",
     "repository": {
         "url": "https://github.com/notskm/vscode-clang-tidy"

@@ -1,3 +1,10 @@
+## [0.4.0]
+
+- Added: `clang-tidy.buildPath` option to tell clang-tidy where the build
+directory is. This is equivalent to `clang-tidy -p ...`
+
+- Fix: Can't save while clang-tidy is running on large files
+
 ## [0.3.0]
 
 - Added: `clang-tidy.lintOnSave` option to disable automatic linting on file save
@@ -22,8 +29,3 @@ equivalent to 0.2.0
 - Initial release
 
 ## [Unreleased]
-
-- Added: `clang-tidy.buildPath` option to tell clang-tidy where the build
-directory is. This is equivalent to `clang-tidy -p ...`
-
-- Fix: Can't save while clang-tidy is running on large files
