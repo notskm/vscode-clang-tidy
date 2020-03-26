@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { ChildProcess, execFile, execFileSync } from 'child_process';
 import * as vscode from 'vscode';
 import * as jsYaml from 'js-yaml';
 
@@ -46,32 +46,55 @@ function clangTidyExecutable() {
         .get('executable') as string;
 }
 
+class ChildProcessWithExitFlag {
+    constructor(process: ChildProcess) {
+        this.process = process;
+        this.exited = false;
+
+        process.on('exit', () => this.exited = false);
+    }
+
+    process: ChildProcess;
+    exited: boolean;
+}
+
+let clangTidyProcess: ChildProcessWithExitFlag | undefined = undefined;
+
+export function killClangTidy() {
+    if (clangTidyProcess === undefined
+        || clangTidyProcess.exited
+        || clangTidyProcess.process.killed) {
+        return;
+    }
+
+    // process.kill() does not work on Windows for some reason.
+    // We can use the taskkill command instead.
+    if (process.platform === 'win32') {
+        const pid = clangTidyProcess.process.pid.toString();
+        execFileSync('taskkill', ['/pid', pid, '/f', '/t']);
+        clangTidyProcess.process.killed = true;
+    }
+    else {
+        clangTidyProcess.process.kill();
+    }
+}
+
 export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel): Promise<string> {
-    return new Promise((resolve, reject) => {
+    killClangTidy();
+
+    return new Promise(resolve => {
         const clangTidy = clangTidyExecutable();
         const args = clangTidyArgs(files);
-
-        const process = spawn(clangTidy, args, { 'cwd': workingDirectory });
 
         loggingChannel.appendLine(`> ${clangTidy} ${args.join(' ')}`);
         loggingChannel.appendLine(`Working Directory: ${workingDirectory}`);
 
-        let output = '';
-
-        process.stdout.on('data', data => {
-            output += data;
-        });
-
-        process.on('exit', code => {
-            loggingChannel.appendLine(output);
-            loggingChannel.appendLine(`clang-tidy exited with code ${code}`);
-            resolve(output);
-        });
-
-        process.on('error', err => {
-            loggingChannel.appendLine(err.message);
-            reject(err);
-        });
+        clangTidyProcess = new ChildProcessWithExitFlag(
+            execFile(clangTidy, args, { 'cwd': workingDirectory }, (error, stdout, stderr) => {
+                loggingChannel.appendLine(stdout);
+                loggingChannel.appendLine(stderr);
+                resolve(stdout);
+            }));
     });
 }
 
