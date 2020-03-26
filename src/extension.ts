@@ -3,6 +3,8 @@ import { commands, workspace } from 'vscode';
 
 import { lintTextDocument, lintActiveTextDocument } from './lint';
 
+import { killClangTidy } from './tidy';
+
 export function activate(context: vscode.ExtensionContext) {
     let subscriptions = context.subscriptions;
 
@@ -31,6 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
     }));
     subscriptions.push(workspace.onDidOpenTextDocument(lintAndSetDiagnostics));
     subscriptions.push(workspace.onDidCloseTextDocument(doc => diagnosticCollection.delete(doc.uri)));
+
+    subscriptions.push(workspace.onWillSaveTextDocument(killClangTidy));
 
     subscriptions.push(workspace.onDidSaveTextDocument(doc => {
         if (workspace.getConfiguration('clang-tidy').get('lintOnSave')) {
