@@ -51,7 +51,7 @@ class ChildProcessWithExitFlag {
         this.process = process;
         this.exited = false;
 
-        process.on('exit', () => this.exited = false);
+        process.on('exit', () => this.exited = true);
     }
 
     process: ChildProcess;
