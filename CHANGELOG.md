@@ -1,3 +1,8 @@
+## [0.4.1]
+
+- Fixed: Clang-Tidy will only run once. Subsequent runs produce
+  `Command failed: taskkill /pid 19412 /f /t ERROR: The process "19412" not found.`
+
 ## [0.4.0]
 
 - Added: `clang-tidy.buildPath` option to tell clang-tidy where the build
@@ -28,6 +33,3 @@ equivalent to 0.2.0
 - Initial release
 
 ## [Unreleased]
-
-- Fixed: Clang-Tidy will only run once. Subsequent runs produce
-  `Command failed: taskkill /pid 19412 /f /t ERROR: The process "19412" not found.`
