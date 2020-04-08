@@ -13,7 +13,7 @@ export async function lintActiveTextDocument(loggingChannel: vscode.OutputChanne
 }
 
 export async function lintTextDocument(file: vscode.TextDocument, loggingChannel: vscode.OutputChannel) {
-    if (!['cpp'].includes(file.languageId)) {
+    if (!['cpp','c'].includes(file.languageId)) {
         return [];
     }
     if (file.uri.scheme !== 'file') {
