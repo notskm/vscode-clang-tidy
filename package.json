@@ -59,6 +59,11 @@
                     "default": true,
                     "description": "Automatically lint files when they are saved"
                 },
+                "clang-tidy.fixOnSave": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically fix resolvable errors detected by clang-tidy in files when they are saved"
+                },
                 "clang-tidy.buildPath": {
                     "type": "string",
                     "default": "",

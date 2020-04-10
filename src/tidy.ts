@@ -2,7 +2,7 @@ import { ChildProcess, execFile, execFileSync } from 'child_process';
 import * as vscode from 'vscode';
 import * as jsYaml from 'js-yaml';
 
-function clangTidyArgs(files: string[]) {
+function clangTidyArgs(files: string[], fixErrors: boolean) {
     let args: string[] = [...files, '--export-fixes=-'];
 
     const checks = vscode.workspace
@@ -35,6 +35,10 @@ function clangTidyArgs(files: string[]) {
 
     if (buildPath.length > 0) {
         args.push(`-p="${buildPath}"`);
+    }
+
+    if (fixErrors) {
+        args.push('--fix');
     }
 
     return args;
@@ -79,12 +83,12 @@ export function killClangTidy() {
     }
 }
 
-export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel): Promise<string> {
+export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel, fixErrors: boolean): Promise<string> {
     killClangTidy();
 
     return new Promise(resolve => {
         const clangTidy = clangTidyExecutable();
-        const args = clangTidyArgs(files);
+        const args = clangTidyArgs(files, fixErrors);
 
         loggingChannel.appendLine(`> ${clangTidy} ${args.join(' ')}`);
         loggingChannel.appendLine(`Working Directory: ${workingDirectory}`);

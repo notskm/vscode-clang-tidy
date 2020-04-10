@@ -14,8 +14,8 @@ export function activate(context: vscode.ExtensionContext) {
     let loggingChannel = vscode.window.createOutputChannel('Clang-Tidy');
     subscriptions.push(loggingChannel);
 
-    async function lintAndSetDiagnostics(file: vscode.TextDocument) {
-        const diagnostics = await lintTextDocument(file, loggingChannel);
+    async function lintAndSetDiagnostics(file: vscode.TextDocument, fixErrors = false) {
+        const diagnostics = await lintTextDocument(file, loggingChannel, fixErrors);
         diagnosticCollection.set(file.uri, diagnostics);
     }
 
@@ -28,7 +28,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     subscriptions.push(workspace.onDidSaveTextDocument(doc => {
         if (workspace.getConfiguration('clang-tidy').get('lintOnSave')) {
-            lintAndSetDiagnostics(doc);
+            const fixErrors = workspace.getConfiguration('clang-tidy').get('fixOnSave') as boolean;
+            lintAndSetDiagnostics(doc, fixErrors);
         }
     }));
     subscriptions.push(workspace.onDidOpenTextDocument(lintAndSetDiagnostics));
@@ -39,20 +40,20 @@ export function activate(context: vscode.ExtensionContext) {
     subscriptions.push(workspace.onDidSaveTextDocument(doc => {
         if (workspace.getConfiguration('clang-tidy').get('lintOnSave')) {
             if (doc.uri.scheme === 'file' && doc.uri.fsPath.endsWith('.clang-tidy')) {
-                workspace.textDocuments.forEach(lintAndSetDiagnostics);
+                workspace.textDocuments.forEach(doc => lintAndSetDiagnostics(doc));
             }
         }
     }));
 
     subscriptions.push(workspace.onDidChangeConfiguration(config => {
         if (config.affectsConfiguration('clang-tidy')) {
-            workspace.textDocuments.forEach(lintAndSetDiagnostics);
+            workspace.textDocuments.forEach(doc => lintAndSetDiagnostics(doc));
         }
     }));
 
     subscriptions.push(commands.registerCommand('clang-tidy.lintFile', lintActiveDocAndSetDiagnostics));
 
-    workspace.textDocuments.forEach(lintAndSetDiagnostics);
+    workspace.textDocuments.forEach(doc => lintAndSetDiagnostics(doc));
 }
 
 export function deactivate() { }
