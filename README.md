@@ -31,6 +31,7 @@ This extension contributes the following settings:
 * `clang-tidy.compilerArgsBefore`: List of arguments to prepend to the compiler command line
 * `clang-tidy.lintOnSave`: Whether or not to lint files when they are saved
 * `clang-tidy.buildPath`: Path to the build folder. Equivalent to clang-tidy -p /path
+* `clang-tidy.fixOnSave`: Whether or not to fix files when they are saved
 
 ## Extension Commands
 
