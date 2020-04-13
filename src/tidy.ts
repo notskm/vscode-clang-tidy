@@ -85,6 +85,7 @@ export function killClangTidy() {
 
 export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel, fixErrors: boolean): Promise<string> {
     killClangTidy();
+    const progressMessage = fixErrors ? "Linting and fixing current file (do not modify it in the meanwhile)..." : "Linting current file...";
 
     return new Promise(resolve => {
         const clangTidy = clangTidyExecutable();
@@ -92,13 +93,19 @@ export function runClangTidy(files: string[], workingDirectory: string, loggingC
 
         loggingChannel.appendLine(`> ${clangTidy} ${args.join(' ')}`);
         loggingChannel.appendLine(`Working Directory: ${workingDirectory}`);
-
-        clangTidyProcess = new ChildProcessWithExitFlag(
-            execFile(clangTidy, args, { 'cwd': workingDirectory }, (error, stdout, stderr) => {
-                loggingChannel.appendLine(stdout);
-                loggingChannel.appendLine(stderr);
-                resolve(stdout);
-            }));
+        vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress) => {
+            progress.report({ message: progressMessage });
+            await new Promise((res, rej) => {
+                clangTidyProcess = new ChildProcessWithExitFlag(
+                    execFile(clangTidy, args, { 'cwd': workingDirectory }, (error, stdout, stderr) => {
+                        loggingChannel.appendLine(stdout);
+                        loggingChannel.appendLine(stderr);
+                        resolve(stdout);
+                        res();
+                    }));
+            }
+            );
+        });
     });
 }
 
