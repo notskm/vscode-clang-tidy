@@ -34,7 +34,7 @@ function clangTidyArgs(files: string[], fixErrors: boolean) {
         .get('buildPath') as string;
 
     if (buildPath.length > 0) {
-        args.push(`-p="${buildPath}"`);
+        args.push(`-p=${buildPath}`);
     }
 
     if (fixErrors) {
