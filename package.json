@@ -79,7 +79,9 @@
         "pretest": "npm run compile",
         "test": "node ./out/test/runTest.js",
         "package": "vsce package",
-        "deploy": "vsce publish -p"
+        "deploy": "vsce publish -p",
+        "format": "prettier --check .",
+        "format:fix": "prettier --write ."
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
