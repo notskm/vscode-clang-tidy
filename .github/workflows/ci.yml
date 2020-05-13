@@ -33,15 +33,29 @@ jobs:
           echo ">>> Started xvfb"
         if: contains(matrix.os, 'ubuntu')
 
-      - name: Install, build, and test
+      - name: Install
+        run: npm ci
+        env:
+          CI: true
+
+      - name: Check formatting
+        run: npm run format
+        env:
+          CI: true
+
+      - name: Build and test
         run: |
-          npm ci
           npm run compile
-          npm test
-          npm run package
+          npm run test
         env:
           CI: true
           DISPLAY: ":99.0"
+
+      - name: Package
+        run: |
+          npm run package
+        env:
+          CI: true
 
   publish:
     if: startsWith(github.ref, 'refs/tags/')
