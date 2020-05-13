@@ -25,19 +25,19 @@ Clang-Tidy is part of LLVM, which can be [downloaded here.](https://releases.llv
 
 This extension contributes the following settings:
 
-* `clang-tidy.executable`: The path to the clang-tidy executable
-* `clang-tidy.checks`: List of checks to enable or disable
-* `clang-tidy.compilerArgs`: List of arguments to append to the compiler command line
-* `clang-tidy.compilerArgsBefore`: List of arguments to prepend to the compiler command line
-* `clang-tidy.lintOnSave`: Whether or not to lint files when they are saved
-* `clang-tidy.buildPath`: Path to the build folder. Equivalent to clang-tidy -p /path
-* `clang-tidy.fixOnSave`: Whether or not to fix files when they are saved
+-   `clang-tidy.executable`: The path to the clang-tidy executable
+-   `clang-tidy.checks`: List of checks to enable or disable
+-   `clang-tidy.compilerArgs`: List of arguments to append to the compiler command line
+-   `clang-tidy.compilerArgsBefore`: List of arguments to prepend to the compiler command line
+-   `clang-tidy.lintOnSave`: Whether or not to lint files when they are saved
+-   `clang-tidy.buildPath`: Path to the build folder. Equivalent to clang-tidy -p /path
+-   `clang-tidy.fixOnSave`: Whether or not to fix files when they are saved
 
 ## Extension Commands
 
 This extension contributes the following commands:
 
-* `Clang-Tidy: Lint File`: Lints the active file
+-   `Clang-Tidy: Lint File`: Lints the active file
 
 ## Known Issues
 
