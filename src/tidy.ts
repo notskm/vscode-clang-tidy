@@ -1,44 +1,44 @@
-import { ChildProcess, execFile, execFileSync } from 'child_process';
-import * as vscode from 'vscode';
-import * as jsYaml from 'js-yaml';
+import { ChildProcess, execFile, execFileSync } from "child_process";
+import * as vscode from "vscode";
+import * as jsYaml from "js-yaml";
 
 function clangTidyArgs(files: string[], fixErrors: boolean) {
-    let args: string[] = [...files, '--export-fixes=-'];
+    let args: string[] = [...files, "--export-fixes=-"];
 
     const checks = vscode.workspace
-        .getConfiguration('clang-tidy')
-        .get('checks') as Array<string>;
+        .getConfiguration("clang-tidy")
+        .get("checks") as Array<string>;
 
     if (checks.length > 0) {
-        args.push(`--checks=${checks.join(',')}`);
+        args.push(`--checks=${checks.join(",")}`);
     }
 
     const compilerArgs = vscode.workspace
-        .getConfiguration('clang-tidy')
-        .get('compilerArgs') as Array<string>;
+        .getConfiguration("clang-tidy")
+        .get("compilerArgs") as Array<string>;
 
-    compilerArgs.forEach(arg => {
+    compilerArgs.forEach((arg) => {
         args.push(`--extra-arg=${arg}`);
     });
 
     const compilerArgsBefore = vscode.workspace
-        .getConfiguration('clang-tidy')
-        .get('compilerArgsBefore') as Array<string>;
+        .getConfiguration("clang-tidy")
+        .get("compilerArgsBefore") as Array<string>;
 
-    compilerArgsBefore.forEach(arg => {
+    compilerArgsBefore.forEach((arg) => {
         args.push(`--extra-arg-before=${arg}`);
     });
 
     const buildPath = vscode.workspace
-        .getConfiguration('clang-tidy')
-        .get('buildPath') as string;
+        .getConfiguration("clang-tidy")
+        .get("buildPath") as string;
 
     if (buildPath.length > 0) {
         args.push(`-p=${buildPath}`);
     }
 
     if (fixErrors) {
-        args.push('--fix');
+        args.push("--fix");
     }
 
     return args;
@@ -46,8 +46,8 @@ function clangTidyArgs(files: string[], fixErrors: boolean) {
 
 function clangTidyExecutable() {
     return vscode.workspace
-        .getConfiguration('clang-tidy')
-        .get('executable') as string;
+        .getConfiguration("clang-tidy")
+        .get("executable") as string;
 }
 
 class ChildProcessWithExitFlag {
@@ -55,7 +55,7 @@ class ChildProcessWithExitFlag {
         this.process = process;
         this.exited = false;
 
-        process.on('exit', () => this.exited = true);
+        process.on("exit", () => (this.exited = true));
     }
 
     process: ChildProcess;
@@ -65,47 +65,63 @@ class ChildProcessWithExitFlag {
 let clangTidyProcess: ChildProcessWithExitFlag | undefined = undefined;
 
 export function killClangTidy() {
-    if (clangTidyProcess === undefined
-        || clangTidyProcess.exited
-        || clangTidyProcess.process.killed) {
+    if (
+        clangTidyProcess === undefined ||
+        clangTidyProcess.exited ||
+        clangTidyProcess.process.killed
+    ) {
         return;
     }
 
     // process.kill() does not work on Windows for some reason.
     // We can use the taskkill command instead.
-    if (process.platform === 'win32') {
+    if (process.platform === "win32") {
         const pid = clangTidyProcess.process.pid.toString();
-        execFileSync('taskkill', ['/pid', pid, '/f', '/t']);
+        execFileSync("taskkill", ["/pid", pid, "/f", "/t"]);
         clangTidyProcess.process.killed = true;
-    }
-    else {
+    } else {
         clangTidyProcess.process.kill();
     }
 }
 
-export function runClangTidy(files: string[], workingDirectory: string, loggingChannel: vscode.OutputChannel, fixErrors: boolean): Promise<string> {
+export function runClangTidy(
+    files: string[],
+    workingDirectory: string,
+    loggingChannel: vscode.OutputChannel,
+    fixErrors: boolean
+): Promise<string> {
     killClangTidy();
-    const progressMessage = fixErrors ? "Linting and fixing current file (do not modify it in the meanwhile)..." : "Linting current file...";
+    const progressMessage = fixErrors
+        ? "Linting and fixing current file (do not modify it in the meanwhile)..."
+        : "Linting current file...";
 
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
         const clangTidy = clangTidyExecutable();
         const args = clangTidyArgs(files, fixErrors);
 
-        loggingChannel.appendLine(`> ${clangTidy} ${args.join(' ')}`);
+        loggingChannel.appendLine(`> ${clangTidy} ${args.join(" ")}`);
         loggingChannel.appendLine(`Working Directory: ${workingDirectory}`);
-        vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress) => {
-            progress.report({ message: progressMessage });
-            await new Promise((res, rej) => {
-                clangTidyProcess = new ChildProcessWithExitFlag(
-                    execFile(clangTidy, args, { 'cwd': workingDirectory }, (error, stdout, stderr) => {
-                        loggingChannel.appendLine(stdout);
-                        loggingChannel.appendLine(stderr);
-                        resolve(stdout);
-                        res();
-                    }));
+        vscode.window.withProgress(
+            { location: vscode.ProgressLocation.Notification },
+            async (progress) => {
+                progress.report({ message: progressMessage });
+                await new Promise((res, rej) => {
+                    clangTidyProcess = new ChildProcessWithExitFlag(
+                        execFile(
+                            clangTidy,
+                            args,
+                            { cwd: workingDirectory },
+                            (error, stdout, stderr) => {
+                                loggingChannel.appendLine(stdout);
+                                loggingChannel.appendLine(stderr);
+                                resolve(stdout);
+                                res();
+                            }
+                        )
+                    );
+                });
             }
-            );
-        });
+        );
     });
 }
 
@@ -134,23 +150,25 @@ interface ClangTidyReplacements {
 
 interface ClangTidyYaml {
     MainSourceFile: string;
-    Diagnostics: [{
-        DiagnosticName: string;
+    Diagnostics: [
+        {
+            DiagnosticName: string;
 
-        // Old style diagnostic info. For older versions of clang-tidy
-        Message?: string;
-        FilePath?: string;
-        FileOffset?: number;
-        Replacements?: ClangTidyReplacements[];
+            // Old style diagnostic info. For older versions of clang-tidy
+            Message?: string;
+            FilePath?: string;
+            FileOffset?: number;
+            Replacements?: ClangTidyReplacements[];
 
-        // Newer style diagnostic info. For newer versions of clang-tidy
-        DiagnosticMessage?: {
-            Message: string;
-            FilePath: string;
-            FileOffset: number;
-            Replacements: ClangTidyReplacements[];
-        };
-    }];
+            // Newer style diagnostic info. For newer versions of clang-tidy
+            DiagnosticMessage?: {
+                Message: string;
+                FilePath: string;
+                FileOffset: number;
+                Replacements: ClangTidyReplacements[];
+            };
+        }
+    ];
 }
 
 function tidyOutputAsObject(clangTidyOutput: string) {
@@ -164,33 +182,32 @@ function tidyOutputAsObject(clangTidyOutput: string) {
     const tidyResults = jsYaml.safeLoad(match[0]) as ClangTidyYaml;
 
     let structuredResults: ClangTidyResults = {
-        "MainSourceFile": tidyResults.MainSourceFile,
-        "Diagnostics": []
+        MainSourceFile: tidyResults.MainSourceFile,
+        Diagnostics: [],
     };
 
-    tidyResults.Diagnostics.forEach(diag => {
+    tidyResults.Diagnostics.forEach((diag) => {
         if (diag.DiagnosticMessage) {
             structuredResults.Diagnostics.push({
-                "DiagnosticName": diag.DiagnosticName,
-                "DiagnosticMessage": {
-                    "Message": diag.DiagnosticMessage.Message,
-                    "FilePath": diag.DiagnosticMessage.FilePath,
-                    "FileOffset": diag.DiagnosticMessage.FileOffset,
-                    "Replacements": diag.DiagnosticMessage.Replacements,
-                    "Severity": vscode.DiagnosticSeverity.Warning
-                }
+                DiagnosticName: diag.DiagnosticName,
+                DiagnosticMessage: {
+                    Message: diag.DiagnosticMessage.Message,
+                    FilePath: diag.DiagnosticMessage.FilePath,
+                    FileOffset: diag.DiagnosticMessage.FileOffset,
+                    Replacements: diag.DiagnosticMessage.Replacements,
+                    Severity: vscode.DiagnosticSeverity.Warning,
+                },
             });
-        }
-        else if (diag.Message && diag.FilePath && diag.FileOffset) {
+        } else if (diag.Message && diag.FilePath && diag.FileOffset) {
             structuredResults.Diagnostics.push({
-                "DiagnosticName": diag.DiagnosticName,
-                "DiagnosticMessage": {
-                    "Message": diag.Message,
-                    "FilePath": diag.FilePath,
-                    "FileOffset": diag.FileOffset,
-                    "Replacements": diag.Replacements ? diag.Replacements : [],
-                    "Severity": vscode.DiagnosticSeverity.Warning
-                }
+                DiagnosticName: diag.DiagnosticName,
+                DiagnosticMessage: {
+                    Message: diag.Message,
+                    FilePath: diag.FilePath,
+                    FileOffset: diag.FileOffset,
+                    Replacements: diag.Replacements ? diag.Replacements : [],
+                    Severity: vscode.DiagnosticSeverity.Warning,
+                },
             });
         }
     });
@@ -205,39 +222,42 @@ function tidyOutputAsObject(clangTidyOutput: string) {
     return structuredResults;
 }
 
-export function collectDiagnostics(clangTidyOutput: string, document: vscode.TextDocument) {
+export function collectDiagnostics(
+    clangTidyOutput: string,
+    document: vscode.TextDocument
+) {
     let results: vscode.Diagnostic[] = [];
 
     const tidyResults = tidyOutputAsObject(clangTidyOutput);
 
-    tidyResults.Diagnostics.forEach(diag => {
+    tidyResults.Diagnostics.forEach((diag) => {
         const diagnosticMessage = diag.DiagnosticMessage;
 
         if (diagnosticMessage.Replacements.length > 0) {
-            diagnosticMessage.Replacements
-                .forEach(replacement => {
-                    const beginPos = document.positionAt(replacement.Offset);
-                    const endPos = document.positionAt(replacement.Offset + replacement.Length);
+            diagnosticMessage.Replacements.forEach((replacement) => {
+                const beginPos = document.positionAt(replacement.Offset);
+                const endPos = document.positionAt(
+                    replacement.Offset + replacement.Length
+                );
 
-                    const diagnostic = {
-                        range: new vscode.Range(beginPos, endPos),
-                        severity: diagnosticMessage.Severity,
-                        message: diagnosticMessage.Message,
-                        code: diag.DiagnosticName,
-                        source: 'clang-tidy'
-                    };
+                const diagnostic = {
+                    range: new vscode.Range(beginPos, endPos),
+                    severity: diagnosticMessage.Severity,
+                    message: diagnosticMessage.Message,
+                    code: diag.DiagnosticName,
+                    source: "clang-tidy",
+                };
 
-                    results.push(diagnostic);
-                });
-        }
-        else {
+                results.push(diagnostic);
+            });
+        } else {
             const line = document.positionAt(diagnosticMessage.FileOffset).line;
             results.push({
                 range: new vscode.Range(line, 0, line, Number.MAX_VALUE),
                 severity: diagnosticMessage.Severity,
                 message: diagnosticMessage.Message,
                 code: diag.DiagnosticName,
-                source: 'clang-tidy'
+                source: "clang-tidy",
             });
         }
     });
@@ -246,29 +266,29 @@ export function collectDiagnostics(clangTidyOutput: string, document: vscode.Tex
 }
 
 function collectDiagnosticSeverities(clangTidyOutput: string) {
-    const data = clangTidyOutput.split('\n');
+    const data = clangTidyOutput.split("\n");
 
     const regex: RegExp = /^.*:\d+:\d+:\s+(warning|error|info|hint):\s+.*$/;
 
     let severities: vscode.DiagnosticSeverity[] = [];
 
-    data.forEach(line => {
+    data.forEach((line) => {
         const matches = regex.exec(line);
         if (matches === null) {
             return;
         }
 
         switch (matches[1]) {
-            case 'error':
+            case "error":
                 severities.push(vscode.DiagnosticSeverity.Error);
                 break;
-            case 'warning':
+            case "warning":
                 severities.push(vscode.DiagnosticSeverity.Warning);
                 break;
-            case 'info':
+            case "info":
                 severities.push(vscode.DiagnosticSeverity.Information);
                 break;
-            case 'hint':
+            case "hint":
                 severities.push(vscode.DiagnosticSeverity.Hint);
                 break;
             default:

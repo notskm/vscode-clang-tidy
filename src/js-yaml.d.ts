@@ -1,4 +1,3 @@
-declare module 'js-yaml'
-{
-    export function safeLoad(string: string): object
+declare module "js-yaml" {
+    export function safeLoad(string: string): object;
 }
