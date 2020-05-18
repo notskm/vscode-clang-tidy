@@ -233,6 +233,10 @@ export function collectDiagnostics(
     tidyResults.Diagnostics.forEach((diag) => {
         const diagnosticMessage = diag.DiagnosticMessage;
 
+        if (document.fileName !== diagnosticMessage.FilePath) {
+            return; // The message isn't related to current file
+        }
+
         if (diagnosticMessage.Replacements.length > 0) {
             diagnosticMessage.Replacements.forEach((replacement) => {
                 const beginPos = document.positionAt(replacement.Offset);
