@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   `clang-tidy.buildPath` fails to work because of double quotes
 
+-   Errors from included file shown as part of parsed file
+
 ## [0.4.1] - 2020-03-26
 
 ### Fixed
