@@ -234,7 +234,7 @@ export function collectDiagnostics(
         const diagnosticMessage = diag.DiagnosticMessage;
 
         if (document.fileName !== diagnosticMessage.FilePath) {
-            return;
+            return; // The message isn't related to current file
         }
 
         if (diagnosticMessage.Replacements.length > 0) {
