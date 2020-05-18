@@ -233,7 +233,14 @@ export function collectDiagnostics(
     tidyResults.Diagnostics.forEach((diag) => {
         const diagnosticMessage = diag.DiagnosticMessage;
 
-        if (document.fileName !== diagnosticMessage.FilePath) {
+        // We make these paths relative before comparing them because
+        // on Windows, the drive letter is lowercase for the document filename,
+        // but uppercase for the diagnostic message file path. This caused the
+        // comparison to fail when it shouldn't.
+        if (
+            vscode.workspace.asRelativePath(document.fileName) !==
+            vscode.workspace.asRelativePath(diagnosticMessage.FilePath)
+        ) {
             return; // The message isn't related to current file
         }
 
