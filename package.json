@@ -20,6 +20,7 @@
     ],
     "activationEvents": [
         "onLanguage:cpp",
+        "onLanguage:c",
         "onCommand:clang-tidy.lintFile",
         "workspaceContains:**/.clang-tidy"
     ],

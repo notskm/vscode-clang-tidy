@@ -38,7 +38,7 @@ export async function lintTextDocument(
     loggingChannel: vscode.OutputChannel,
     fixErrors: boolean
 ) {
-    if (!["cpp"].includes(file.languageId)) {
+    if (!['cpp','c'].includes(file.languageId)) {
         return [];
     }
     if (file.uri.scheme !== "file") {
