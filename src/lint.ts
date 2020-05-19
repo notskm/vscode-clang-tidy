@@ -18,6 +18,21 @@ export async function lintActiveTextDocument(
     };
 }
 
+function isBlacklisted(file: vscode.TextDocument) {
+    const blacklist = vscode.workspace
+        .getConfiguration("clang-tidy")
+        .get("blacklist") as Array<string>;
+
+    const relativeFilename = vscode.workspace.asRelativePath(file.fileName);
+
+    for (let i = 0; i < blacklist.length; i++) {
+        const regex = new RegExp(blacklist[i]);
+        if (regex.test(relativeFilename)) {
+            return true;
+        }
+    }
+}
+
 export async function lintTextDocument(
     file: vscode.TextDocument,
     loggingChannel: vscode.OutputChannel,
@@ -31,8 +46,11 @@ export async function lintTextDocument(
     }
 
     const workspaceFolder = vscode.workspace.getWorkspaceFolder(file.uri);
-
     if (!workspaceFolder) {
+        return [];
+    }
+
+    if (isBlacklisted(file)) {
         return [];
     }
 

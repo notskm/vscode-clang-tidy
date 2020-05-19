@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   `clang-tidy.fixOnSave` option to apply clang-tidy fixes on save
 
+-   `clang-tidy.blacklist` option to blacklist files from being linted
+
 ### Fixed
 
 -   `clang-tidy.buildPath` fails to work because of double quotes

@@ -68,6 +68,11 @@
                     "type": "string",
                     "default": "",
                     "description": "Path to the build folder"
+                },
+                "clang-tidy.blacklist": {
+                    "type": "array",
+                    "default": [],
+                    "description": "A list of regular expressions matching files you don't want to lint."
                 }
             }
         }
