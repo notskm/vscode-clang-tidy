@@ -3,15 +3,14 @@ name: CI
 on:
   push:
     branches:
-    - master
-    - release/**
+      - master
+      - release/**
     tags:
-    - v*.*.*
+      - v*.*.*
   pull_request:
 
 jobs:
   build:
-
     strategy:
       fail-fast: false
       matrix:
@@ -21,54 +20,97 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
+      - uses: actions/checkout@v1
 
-    - name: Use node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Use node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Setup display
-      run: |
-        /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
-        echo ">>> Started xvfb"
-      if: contains(matrix.os, 'ubuntu')
+      - name: Setup display
+        run: |
+          /usr/bin/Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          echo ">>> Started xvfb"
+        if: contains(matrix.os, 'ubuntu')
 
-    - name: Install, build, and test
-      run: |
-        npm ci
-        npm run compile
-        npm test
-        npm run package
-      env:
-        CI: true
-        DISPLAY: ':99.0'
+      - name: Install
+        run: npm ci
+        env:
+          CI: true
+
+      - name: Check formatting
+        run: npm run format
+        env:
+          CI: true
+
+      - name: Build and test
+        run: |
+          npm run compile
+          npm run test
+        env:
+          CI: true
+          DISPLAY: ":99.0"
+
+      - name: Package
+        run: |
+          npm run package
+        env:
+          CI: true
 
   publish:
-
     if: startsWith(github.ref, 'refs/tags/')
 
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
-    - name: Use node.js 12.x
-      uses: actions/setup-node@v1
-      with:
-        node-version: 12.x
+      - name: Use node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
 
-    - name: Publish
-      run: |
-        npm ci
-        npm run package
-        npm run deploy -p ${{ secrets.VSCE_TOKEN }}
+      - name: Get project version
+        id: project-version
+        shell: pwsh
+        run: |
+          $project_version = (node -p "require('./package.json').version")
+          echo "::set-output name=version::$project_version"
 
-    - name: Github release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: ./clang-tidy-*.*.*.vsix
-        body_path: CHANGELOG.md
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Get changelog entry
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v1.1.0
+        with:
+          version: ${{ github.ref }}
+          path: ./CHANGELOG.md
+
+      - name: Package
+        run: |
+          npm ci
+          npm run package
+
+      - name: Publish to VSCode marketplace
+        run: npm run deploy -p ${{ secrets.VSCE_TOKEN }}
+
+      - name: Create Github release
+        id: create_github_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: ${{ steps.changelog_reader.outputs.log_entry }}
+          draft: false
+          prerelease: false
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_github_release.outputs.upload_url }}
+          asset_path: ./clang-tidy-${{ steps.project-version.outputs.version }}.vsix
+          asset_name: clang-tidy-${{ steps.project-version.outputs.version }}.vsix
+          asset_content_type: application/octet-stream

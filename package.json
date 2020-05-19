@@ -60,10 +60,20 @@
                     "default": true,
                     "description": "Automatically lint files when they are saved"
                 },
+                "clang-tidy.fixOnSave": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Automatically fix resolvable errors detected by clang-tidy in files when they are saved"
+                },
                 "clang-tidy.buildPath": {
                     "type": "string",
                     "default": "",
                     "description": "Path to the build folder"
+                },
+                "clang-tidy.blacklist": {
+                    "type": "array",
+                    "default": [],
+                    "description": "A list of regular expressions matching files you don't want to lint."
                 }
             }
         }
@@ -75,7 +85,9 @@
         "pretest": "npm run compile",
         "test": "node ./out/test/runTest.js",
         "package": "vsce package",
-        "deploy": "vsce publish -p"
+        "deploy": "vsce publish -p",
+        "format": "prettier --check .",
+        "format:fix": "prettier --write ."
     },
     "devDependencies": {
         "@types/glob": "^7.1.1",
@@ -84,6 +96,7 @@
         "@types/vscode": "^1.43.0",
         "glob": "^7.1.4",
         "mocha": "^7.1.1",
+        "prettier": "2.0.5",
         "tslint": "^5.12.1",
         "typescript": "^3.3.1",
         "vsce": "^1.74.0",
