@@ -172,14 +172,13 @@ interface ClangTidyYaml {
 }
 
 function tidyOutputAsObject(clangTidyOutput: string) {
-    const regex = /(^\-\-\-(.*\n)*\.\.\.$)/gm;
-    const match = regex.exec(clangTidyOutput);
-
-    if (!match) {
+    const yamlIndex = clangTidyOutput.search(/^---$/m);
+    if (yamlIndex < 0) {
         return { MainSourceFile: "", Diagnostics: [] };
     }
+    const rawYaml = clangTidyOutput.substr(yamlIndex);
 
-    const tidyResults = jsYaml.safeLoad(match[0]) as ClangTidyYaml;
+    const tidyResults = jsYaml.safeLoad(rawYaml) as ClangTidyYaml;
 
     let structuredResults: ClangTidyResults = {
         MainSourceFile: tidyResults.MainSourceFile,
