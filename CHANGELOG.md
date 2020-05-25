@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+-   Diagnostics sometimes aren't being reported even though clang-tidy finds problems.
+
 ## [0.5.0] - 2020-05-21
 
 ### Added
