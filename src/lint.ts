@@ -25,12 +25,10 @@ function isBlacklisted(file: vscode.TextDocument) {
 
     const relativeFilename = vscode.workspace.asRelativePath(file.fileName);
 
-    for (let i = 0; i < blacklist.length; i++) {
-        const regex = new RegExp(blacklist[i]);
-        if (regex.test(relativeFilename)) {
-            return true;
-        }
-    }
+    return blacklist.some(entry => {
+        const regex = new RegExp(entry);
+        return regex.test(relativeFilename);
+    });
 }
 
 export async function lintTextDocument(
