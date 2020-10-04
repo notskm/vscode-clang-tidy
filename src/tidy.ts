@@ -1,6 +1,7 @@
 import { ChildProcess, execFile, execFileSync } from "child_process";
 import * as vscode from "vscode";
 import * as jsYaml from "js-yaml";
+import { ClangTidyDiagnostic, ClangTidyResults, ClangTidyYaml } from "./clang-tidy-yaml";
 
 function clangTidyArgs(files: string[], fixErrors: boolean) {
     let args: string[] = [...files, "--export-fixes=-"];
@@ -125,52 +126,6 @@ export function runClangTidy(
     });
 }
 
-interface ClangTidyResults {
-    MainSourceFile: string;
-    Diagnostics: ClangTidyDiagnostic[];
-}
-
-interface ClangTidyDiagnostic {
-    DiagnosticName: string;
-    DiagnosticMessage: {
-        Message: string;
-        FilePath: string;
-        FileOffset: number;
-        Replacements: ClangTidyReplacements[];
-        Severity: vscode.DiagnosticSeverity | vscode.DiagnosticSeverity.Warning;
-    };
-}
-
-interface ClangTidyReplacements {
-    FilePath: string;
-    Offset: number;
-    Length: number;
-    ReplacementText: string;
-}
-
-interface ClangTidyYaml {
-    MainSourceFile: string;
-    Diagnostics: [
-        {
-            DiagnosticName: string;
-
-            // Old style diagnostic info. For older versions of clang-tidy
-            Message?: string;
-            FilePath?: string;
-            FileOffset?: number;
-            Replacements?: ClangTidyReplacements[];
-
-            // Newer style diagnostic info. For newer versions of clang-tidy
-            DiagnosticMessage?: {
-                Message: string;
-                FilePath: string;
-                FileOffset: number;
-                Replacements: ClangTidyReplacements[];
-            };
-        }
-    ];
-}
-
 function tidyOutputAsObject(clangTidyOutput: string) {
     const yamlIndex = clangTidyOutput.search(/^---$/m);
     if (yamlIndex < 0) {
@@ -221,15 +176,43 @@ function tidyOutputAsObject(clangTidyOutput: string) {
     return structuredResults;
 }
 
+function generateVScodeDiagnostics(document: vscode.TextDocument, tidyDiagnostic: ClangTidyDiagnostic): vscode.Diagnostic[] {
+    const diagnosticMessage = tidyDiagnostic.DiagnosticMessage;
+    if (diagnosticMessage.Replacements.length > 0) {
+        return diagnosticMessage.Replacements.map((replacement) => {
+            const beginPos = document.positionAt(replacement.Offset);
+            const endPos = document.positionAt(
+                replacement.Offset + replacement.Length
+            );
+
+            let diagnostic = new vscode.Diagnostic(
+                new vscode.Range(beginPos, endPos),
+                diagnosticMessage.Message,
+                diagnosticMessage.Severity);
+            // embedd information needed for quickfix in code
+            diagnostic.code = JSON.stringify([
+                replacement.ReplacementText, replacement.Offset, replacement.Length]);
+            diagnostic.source = "clang-tidy";
+            return diagnostic;
+        });
+    } else {
+        const line = document.positionAt(diagnosticMessage.FileOffset).line;
+        let diagnostic = new vscode.Diagnostic(
+            new vscode.Range(line, 0, line, Number.MAX_VALUE),
+            diagnosticMessage.Message,
+            diagnosticMessage.Severity);
+        diagnostic.source = "clang-tidy";
+        return [diagnostic];
+    }
+}
+
 export function collectDiagnostics(
     clangTidyOutput: string,
     document: vscode.TextDocument
 ) {
-    let results: vscode.Diagnostic[] = [];
-
     const tidyResults = tidyOutputAsObject(clangTidyOutput);
 
-    tidyResults.Diagnostics.forEach((diag) => {
+    const results = tidyResults.Diagnostics.reduce((acc, diag) => {
         const diagnosticMessage = diag.DiagnosticMessage;
 
         // We make these paths relative before comparing them because
@@ -240,37 +223,11 @@ export function collectDiagnostics(
             vscode.workspace.asRelativePath(document.fileName) !==
             vscode.workspace.asRelativePath(diagnosticMessage.FilePath)
         ) {
-            return; // The message isn't related to current file
+            return acc; // The message isn't related to current file
         }
-
-        if (diagnosticMessage.Replacements.length > 0) {
-            diagnosticMessage.Replacements.forEach((replacement) => {
-                const beginPos = document.positionAt(replacement.Offset);
-                const endPos = document.positionAt(
-                    replacement.Offset + replacement.Length
-                );
-
-                const diagnostic = {
-                    range: new vscode.Range(beginPos, endPos),
-                    severity: diagnosticMessage.Severity,
-                    message: diagnosticMessage.Message,
-                    code: diag.DiagnosticName,
-                    source: "clang-tidy",
-                };
-
-                results.push(diagnostic);
-            });
-        } else {
-            const line = document.positionAt(diagnosticMessage.FileOffset).line;
-            results.push({
-                range: new vscode.Range(line, 0, line, Number.MAX_VALUE),
-                severity: diagnosticMessage.Severity,
-                message: diagnosticMessage.Message,
-                code: diag.DiagnosticName,
-                source: "clang-tidy",
-            });
-        }
-    });
+        generateVScodeDiagnostics(document, diag).forEach(a => acc.push(a));
+        return acc;
+    }, [] as vscode.Diagnostic[]);
 
     return results;
 }
