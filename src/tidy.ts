@@ -1,7 +1,11 @@
 import { ChildProcess, execFile, execFileSync } from "child_process";
 import * as vscode from "vscode";
 import * as jsYaml from "js-yaml";
-import { ClangTidyDiagnostic, ClangTidyResults, ClangTidyYaml } from "./clang-tidy-yaml";
+import {
+    ClangTidyDiagnostic,
+    ClangTidyResults,
+    ClangTidyYaml,
+} from "./clang-tidy-yaml";
 
 function clangTidyArgs(files: string[], fixErrors: boolean) {
     let args: string[] = [...files, "--export-fixes=-"];
@@ -176,7 +180,10 @@ function tidyOutputAsObject(clangTidyOutput: string) {
     return structuredResults;
 }
 
-function generateVScodeDiagnostics(document: vscode.TextDocument, tidyDiagnostic: ClangTidyDiagnostic): vscode.Diagnostic[] {
+function generateVScodeDiagnostics(
+    document: vscode.TextDocument,
+    tidyDiagnostic: ClangTidyDiagnostic
+): vscode.Diagnostic[] {
     const diagnosticMessage = tidyDiagnostic.DiagnosticMessage;
     if (diagnosticMessage.Replacements.length > 0) {
         return diagnosticMessage.Replacements.map((replacement) => {
@@ -188,10 +195,14 @@ function generateVScodeDiagnostics(document: vscode.TextDocument, tidyDiagnostic
             let diagnostic = new vscode.Diagnostic(
                 new vscode.Range(beginPos, endPos),
                 diagnosticMessage.Message,
-                diagnosticMessage.Severity);
+                diagnosticMessage.Severity
+            );
             // embedd information needed for quickfix in code
             diagnostic.code = JSON.stringify([
-                replacement.ReplacementText, replacement.Offset, replacement.Length]);
+                replacement.ReplacementText,
+                replacement.Offset,
+                replacement.Length,
+            ]);
             diagnostic.source = "clang-tidy";
             return diagnostic;
         });
@@ -200,7 +211,8 @@ function generateVScodeDiagnostics(document: vscode.TextDocument, tidyDiagnostic
         let diagnostic = new vscode.Diagnostic(
             new vscode.Range(line, 0, line, Number.MAX_VALUE),
             diagnosticMessage.Message,
-            diagnosticMessage.Severity);
+            diagnosticMessage.Severity
+        );
         diagnostic.source = "clang-tidy";
         return [diagnostic];
     }
@@ -225,7 +237,7 @@ export function collectDiagnostics(
         ) {
             return acc; // The message isn't related to current file
         }
-        generateVScodeDiagnostics(document, diag).forEach(a => acc.push(a));
+        generateVScodeDiagnostics(document, diag).forEach((a) => acc.push(a));
         return acc;
     }, [] as vscode.Diagnostic[]);
 
