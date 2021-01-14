@@ -25,7 +25,7 @@ function isBlacklisted(file: vscode.TextDocument) {
 
     const relativeFilename = vscode.workspace.asRelativePath(file.fileName);
 
-    return blacklist.some(entry => {
+    return blacklist.some((entry) => {
         const regex = new RegExp(entry);
         return regex.test(relativeFilename);
     });

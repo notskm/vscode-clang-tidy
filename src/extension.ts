@@ -5,15 +5,19 @@ import { ClangTidyReplacement } from "./clang-tidy-yaml";
 
 import { lintTextDocument, lintActiveTextDocument } from "./lint";
 
-import { killClangTidy, } from "./tidy";
+import { killClangTidy } from "./tidy";
 
 export function activate(context: vscode.ExtensionContext) {
     let subscriptions = context.subscriptions;
 
     context.subscriptions.push(
-        vscode.languages.registerCodeActionsProvider('cpp', new ClangTidyInfo(), {
-            providedCodeActionKinds: ClangTidyInfo.providedCodeActionKinds
-        })
+        vscode.languages.registerCodeActionsProvider(
+            "cpp",
+            new ClangTidyInfo(),
+            {
+                providedCodeActionKinds: ClangTidyInfo.providedCodeActionKinds,
+            }
+        )
     );
 
     let diagnosticCollection = vscode.languages.createDiagnosticCollection();
@@ -99,41 +103,58 @@ export function activate(context: vscode.ExtensionContext) {
  * Provides code actions corresponding to diagnostic problems.
  */
 export class ClangTidyInfo implements vscode.CodeActionProvider {
-
     public static readonly providedCodeActionKinds = [
-        vscode.CodeActionKind.QuickFix
+        vscode.CodeActionKind.QuickFix,
     ];
 
-    provideCodeActions(document: vscode.TextDocument, range: vscode.Range | vscode.Selection, context: vscode.CodeActionContext, token: vscode.CancellationToken): vscode.CodeAction[] {
+    provideCodeActions(
+        document: vscode.TextDocument,
+        range: vscode.Range | vscode.Selection,
+        context: vscode.CodeActionContext,
+        token: vscode.CancellationToken
+    ): vscode.CodeAction[] {
         // for each diagnostic entry that has the matching `code`, create a code action command
-        return context.diagnostics
-            .reduce((acc, diagnostic) => {
-                const action = this.createCommandCodeAction(document, diagnostic);
-                if (!!action) {
-                    acc.push(action);
-                }
-                return acc;
-            }, [] as vscode.CodeAction[]);
+        return context.diagnostics.reduce((acc, diagnostic) => {
+            const action = this.createCommandCodeAction(document, diagnostic);
+            if (!!action) {
+                acc.push(action);
+            }
+            return acc;
+        }, [] as vscode.CodeAction[]);
     }
 
-    private createCommandCodeAction(document: vscode.TextDocument, diagnostic: vscode.Diagnostic): vscode.CodeAction | null {
-        if (diagnostic.source !== "clang-tidy" || !diagnostic.code || typeof (diagnostic.code) !== "string") {
+    private createCommandCodeAction(
+        document: vscode.TextDocument,
+        diagnostic: vscode.Diagnostic
+    ): vscode.CodeAction | null {
+        if (
+            diagnostic.source !== "clang-tidy" ||
+            !diagnostic.code ||
+            typeof diagnostic.code !== "string"
+        ) {
             return null;
         }
-        const [text, offset, len] = JSON.parse(diagnostic.code) as [string, number, number];
+        const [text, offset, len] = JSON.parse(diagnostic.code) as [
+            string,
+            number,
+            number
+        ];
         const changes = new vscode.WorkspaceEdit();
-        changes.replace(document.uri,
+        changes.replace(
+            document.uri,
             new vscode.Range(
                 document.positionAt(offset),
-                document.positionAt(offset + len)),
-            text);
+                document.positionAt(offset + len)
+            ),
+            text
+        );
         return {
             title: `[Clang-Tidy] Change to ${text}`,
             diagnostics: [diagnostic],
             kind: CodeActionKind.QuickFix,
-            edit: changes
+            edit: changes,
         };
     }
 }
 
-export function deactivate() { }
+export function deactivate() {}

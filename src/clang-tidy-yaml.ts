@@ -1,4 +1,4 @@
-import {DiagnosticSeverity} from "vscode"
+import { DiagnosticSeverity } from "vscode";
 
 export interface ClangTidyResults {
     MainSourceFile: string;
