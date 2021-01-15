@@ -199,7 +199,7 @@ function generateVScodeDiagnostics(
                 diagnosticMessage.Message,
                 diagnosticMessage.Severity
             );
-            // embedd information needed for quickfix in code
+            // embed information needed for quickfix in code
             diagnostic.code = JSON.stringify([
                 replacement.ReplacementText,
                 replacement.Offset,
