@@ -1,7 +1,5 @@
 # Clang-Tidy for VSCode
 
-[![ko-fi](https://img.shields.io/badge/-Support%20me%20on%20Ko--fi-red?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/notskm)
-
 [![Build Status](https://img.shields.io/github/workflow/status/notskm/vscode-clang-tidy/CI)](https://github.com/notskm/vscode-clang-tidy/actions?query=workflow%3ACI)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
