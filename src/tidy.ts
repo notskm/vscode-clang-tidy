@@ -220,11 +220,39 @@ function generateVScodeDiagnostics(
     }
 }
 
+function fixDiagnosticRanges(
+    tidyResults: ClangTidyResults,
+    document: vscode.TextDocument
+) {
+    const buffer = Buffer.from(document.getText());
+
+    tidyResults.Diagnostics.forEach((diagnostic) => {
+        diagnostic.DiagnosticMessage.FileOffset = buffer
+            .slice(0, diagnostic.DiagnosticMessage.FileOffset)
+            .toString().length;
+
+        diagnostic.DiagnosticMessage.Replacements.forEach((replacement) => {
+            replacement.Length = buffer
+                .slice(
+                    replacement.Offset,
+                    replacement.Offset + replacement.Length
+                )
+                .toString().length;
+
+            replacement.Offset = buffer
+                .slice(0, replacement.Offset)
+                .toString().length;
+        });
+    });
+}
+
 export function collectDiagnostics(
     clangTidyOutput: string,
     document: vscode.TextDocument
 ) {
     const tidyResults = tidyOutputAsObject(clangTidyOutput);
+
+    fixDiagnosticRanges(tidyResults, document);
 
     const results = tidyResults.Diagnostics.reduce((acc, diag) => {
         const diagnosticMessage = diag.DiagnosticMessage;
