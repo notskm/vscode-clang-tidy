@@ -30,6 +30,7 @@ This extension contributes the following settings:
 -   `clang-tidy.compilerArgs`: List of arguments to append to the compiler command line
 -   `clang-tidy.compilerArgsBefore`: List of arguments to prepend to the compiler command line
 -   `clang-tidy.lintOnSave`: Whether or not to lint files when they are saved
+-   `clang-tidy.lintOnOpen`: Whether or not to lint files when they are opened
 -   `clang-tidy.buildPath`: Path to the build folder. Equivalent to clang-tidy -p /path
 -   `clang-tidy.fixOnSave`: Whether or not to fix files when they are saved
 -   `clang-tidy.blacklist`: A list of regular expressions matching files you don't want to lint
