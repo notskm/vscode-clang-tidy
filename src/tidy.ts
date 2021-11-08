@@ -1,4 +1,5 @@
 import { ChildProcess, execFile, execFileSync } from "child_process";
+import { isAbsolute, join, normalize } from "path";
 import * as vscode from "vscode";
 import * as jsYaml from "js-yaml";
 import {
@@ -157,6 +158,7 @@ function tidyOutputAsObject(clangTidyOutput: string) {
                     Replacements: diag.DiagnosticMessage.Replacements,
                     Severity: vscode.DiagnosticSeverity.Warning,
                 },
+                BuildDirectory: diag.BuildDirectory
             });
         } else if (diag.Message && diag.FilePath && diag.FileOffset) {
             structuredResults.Diagnostics.push({
@@ -257,13 +259,22 @@ export function collectDiagnostics(
     const results = tidyResults.Diagnostics.reduce((acc, diag) => {
         const diagnosticMessage = diag.DiagnosticMessage;
 
+        // If the provided `FilePath` is a relative path, try to to make
+        // it an absolute path so that the later `asRelativePath` will
+        // generate the _correct_ relative path for the equality test.
+        let diagnosticFilePath = diagnosticMessage.FilePath;
+
+        if (!isAbsolute(diagnosticFilePath) && !!diag.BuildDirectory) {
+            diagnosticFilePath = normalize(join(diag.BuildDirectory, diagnosticFilePath));
+        }
+
         // We make these paths relative before comparing them because
         // on Windows, the drive letter is lowercase for the document filename,
         // but uppercase for the diagnostic message file path. This caused the
         // comparison to fail when it shouldn't.
         if (
             vscode.workspace.asRelativePath(document.fileName) !==
-            vscode.workspace.asRelativePath(diagnosticMessage.FilePath)
+            vscode.workspace.asRelativePath(diagnosticFilePath)
         ) {
             return acc; // The message isn't related to current file
         }
