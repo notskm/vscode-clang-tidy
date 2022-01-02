@@ -50,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
             if (workspace.getConfiguration("clang-tidy").get("lintOnSave")) {
                 const fixErrors = workspace
                     .getConfiguration("clang-tidy")
-                    .get("fixOnSave") as boolean;
+                    .get("fixOnSave", false);
                 lintAndSetDiagnostics(doc, fixErrors);
             }
         })

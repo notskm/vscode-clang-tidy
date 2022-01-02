@@ -103,7 +103,7 @@
         "mocha": "^7.1.1",
         "prettier": "2.0.5",
         "tslint": "^5.12.1",
-        "typescript": "^3.3.1",
+        "typescript": "^3.9.10",
         "vsce": "^1.74.0",
         "vscode-test": "^1.2.0"
     },
