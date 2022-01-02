@@ -40,6 +40,11 @@
                     "default": "clang-tidy",
                     "description": "Path to the clang-tidy executable"
                 },
+                "clang-tidy.extraArgs": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Extra arguments to pass to executable"
+                },
                 "clang-tidy.checks": {
                     "type": "array",
                     "default": [],

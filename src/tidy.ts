@@ -8,7 +8,11 @@ import {
 } from "./clang-tidy-yaml";
 
 function clangTidyArgs(files: string[], fixErrors: boolean) {
-    let args: string[] = [...files, "--export-fixes=-"];
+    const extraArgs = vscode.workspace
+        .getConfiguration("clang-tidy")
+        .get<string[]>("extraArgs", []);
+
+    let args: string[] = [...extraArgs, ...files, "--export-fixes=-"];
 
     const checks = vscode.workspace
         .getConfiguration("clang-tidy")
