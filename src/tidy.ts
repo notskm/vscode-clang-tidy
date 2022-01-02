@@ -85,9 +85,10 @@ export function killClangTidy() {
     // process.kill() does not work on Windows for some reason.
     // We can use the taskkill command instead.
     if (process.platform === "win32") {
-        const pid = clangTidyProcess.process.pid.toString();
-        execFileSync("taskkill", ["/pid", pid, "/f", "/t"]);
-        clangTidyProcess.process.killed = true;
+        const pid = clangTidyProcess.process.pid;
+        if (pid === undefined)
+            throw new Error("Could not get PID of clang-tidy process.");
+        execFileSync("taskkill", ["/pid", pid.toString(), "/f", "/t"]);
     } else {
         clangTidyProcess.process.kill();
     }
