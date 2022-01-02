@@ -84,6 +84,7 @@ export function killClangTidy() {
 
     // process.kill() does not work on Windows for some reason.
     // We can use the taskkill command instead.
+    // cSpell:ignore taskkill
     if (process.platform === "win32") {
         const pid = clangTidyProcess.process.pid;
         if (pid === undefined)
@@ -204,7 +205,7 @@ function generateVScodeDiagnostics(
                 diagnosticMessage.Message,
                 diagnosticMessage.Severity
             );
-            // embed information needed for quickfix in code
+            // embed information needed for "Quick fix" in code
             diagnostic.code = JSON.stringify([
                 replacement.ReplacementText,
                 replacement.Offset,
