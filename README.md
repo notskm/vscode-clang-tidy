@@ -26,6 +26,7 @@ Clang-Tidy is part of LLVM, which can be [downloaded here.](https://releases.llv
 This extension contributes the following settings:
 
 -   `clang-tidy.executable`: The path to the clang-tidy executable
+-   `clang-tidy.extraArgs`: Extra arguments to pass to the clang-tidy executable
 -   `clang-tidy.checks`: List of checks to enable or disable
 -   `clang-tidy.compilerArgs`: List of arguments to append to the compiler command line
 -   `clang-tidy.compilerArgsBefore`: List of arguments to prepend to the compiler command line

@@ -18,10 +18,12 @@ export async function lintActiveTextDocument(
     };
 }
 
-function isBlacklisted(file: vscode.TextDocument) {
+function isBlacklisted(file: vscode.TextDocument): boolean {
     const blacklist = vscode.workspace
         .getConfiguration("clang-tidy")
-        .get("blacklist") as Array<string>;
+        .get<string[]>("blacklist");
+
+    if (!blacklist) return false;
 
     const relativeFilename = vscode.workspace.asRelativePath(file.fileName);
 

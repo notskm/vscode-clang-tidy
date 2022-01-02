@@ -8,37 +8,41 @@ import {
 } from "./clang-tidy-yaml";
 
 function clangTidyArgs(files: string[], fixErrors: boolean) {
-    let args: string[] = [...files, "--export-fixes=-"];
+    const extraArgs = vscode.workspace
+        .getConfiguration("clang-tidy")
+        .get<string[]>("extraArgs", []);
+
+    let args: string[] = [...extraArgs, ...files, "--export-fixes=-"];
 
     const checks = vscode.workspace
         .getConfiguration("clang-tidy")
-        .get("checks") as Array<string>;
+        .get<string[]>("checks");
 
-    if (checks.length > 0) {
+    if (checks?.length) {
         args.push(`--checks=${checks.join(",")}`);
     }
 
     const compilerArgs = vscode.workspace
         .getConfiguration("clang-tidy")
-        .get("compilerArgs") as Array<string>;
+        .get<string[]>("compilerArgs");
 
-    compilerArgs.forEach((arg) => {
+    compilerArgs?.forEach((arg) => {
         args.push(`--extra-arg=${arg}`);
     });
 
     const compilerArgsBefore = vscode.workspace
         .getConfiguration("clang-tidy")
-        .get("compilerArgsBefore") as Array<string>;
+        .get<string[]>("compilerArgsBefore");
 
-    compilerArgsBefore.forEach((arg) => {
+    compilerArgsBefore?.forEach((arg) => {
         args.push(`--extra-arg-before=${arg}`);
     });
 
     const buildPath = vscode.workspace
         .getConfiguration("clang-tidy")
-        .get("buildPath") as string;
+        .get<string>("buildPath");
 
-    if (buildPath.length > 0) {
+    if (buildPath?.length) {
         args.push(`-p=${buildPath}`);
     }
 
@@ -52,7 +56,7 @@ function clangTidyArgs(files: string[], fixErrors: boolean) {
 function clangTidyExecutable() {
     return vscode.workspace
         .getConfiguration("clang-tidy")
-        .get("executable") as string;
+        .get("executable", "clang-tidy");
 }
 
 class ChildProcessWithExitFlag {
@@ -80,10 +84,12 @@ export function killClangTidy() {
 
     // process.kill() does not work on Windows for some reason.
     // We can use the taskkill command instead.
+    // cSpell:ignore taskkill
     if (process.platform === "win32") {
-        const pid = clangTidyProcess.process.pid.toString();
-        execFileSync("taskkill", ["/pid", pid, "/f", "/t"]);
-        clangTidyProcess.process.killed = true;
+        const pid = clangTidyProcess.process.pid;
+        if (pid === undefined)
+            throw new Error("Could not get PID of clang-tidy process.");
+        execFileSync("taskkill", ["/pid", pid.toString(), "/f", "/t"]);
     } else {
         clangTidyProcess.process.kill();
     }
@@ -199,7 +205,7 @@ function generateVScodeDiagnostics(
                 diagnosticMessage.Message,
                 diagnosticMessage.Severity
             );
-            // embed information needed for quickfix in code
+            // embed information needed for "Quick fix" in code
             diagnostic.code = JSON.stringify([
                 replacement.ReplacementText,
                 replacement.Offset,
@@ -269,7 +275,7 @@ export function collectDiagnostics(
         }
         generateVScodeDiagnostics(document, diag).forEach((a) => acc.push(a));
         return acc;
-    }, [] as vscode.Diagnostic[]);
+    }, new Array<vscode.Diagnostic>());
 
     return results;
 }
