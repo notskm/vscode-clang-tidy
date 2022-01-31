@@ -1,11 +1,11 @@
 {
-    "name": "clang-tidy",
+    "name": "clang-tidy-expanded",
     "displayName": "Clang-Tidy",
     "description": "Integrates clang-tidy into VS Code",
-    "version": "0.5.1",
-    "publisher": "notskm",
+    "version": "0.1.0",
+    "publisher": "zoey-ada",
     "repository": {
-        "url": "https://github.com/notskm/vscode-clang-tidy"
+        "url": "https://github.com/zoey-ada/vscode-clang-tidy"
     },
     "icon": "images/Dragon256.png",
     "galleryBanner": {
@@ -40,10 +40,20 @@
                     "default": "clang-tidy",
                     "description": "Path to the clang-tidy executable"
                 },
+                "clang-tidy.configFile": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Path to a .clang-tidy file"
+                },
                 "clang-tidy.checks": {
                     "type": "array",
                     "default": [],
                     "description": "List of globs to enable or disable checks"
+                },
+                "clang-tidy.includePaths": {
+                    "type": "array",
+                    "default": [],
+                    "description": "Extra paths to use when searching for included files"
                 },
                 "clang-tidy.compilerArgs": {
                     "type": "array",

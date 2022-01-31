@@ -1,9 +1,8 @@
 # Clang-Tidy for VSCode
 
-[![Build Status](https://img.shields.io/github/workflow/status/notskm/vscode-clang-tidy/CI)](https://github.com/notskm/vscode-clang-tidy/actions?query=workflow%3ACI)
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
-
 This extension integrates [clang-tidy](https://clang.llvm.org/extra/clang-tidy/) into VS Code.
+
+This project is forked from notskm/vscode-clang-tidy. Added support for using a .clang-tidy config file as well as a specific setting for include directories.
 
 [Clang-Tidy documentation can be found here.](https://clang.llvm.org/extra/clang-tidy/)
 
@@ -26,7 +25,9 @@ Clang-Tidy is part of LLVM, which can be [downloaded here.](https://releases.llv
 This extension contributes the following settings:
 
 -   `clang-tidy.executable`: The path to the clang-tidy executable
+-   `clang-tidy.configFile`: Path to a .clang-tidy file
 -   `clang-tidy.checks`: List of checks to enable or disable
+-   `clang-tidy.includePaths`: List of extra paths to use when searching for included files
 -   `clang-tidy.compilerArgs`: List of arguments to append to the compiler command line
 -   `clang-tidy.compilerArgsBefore`: List of arguments to prepend to the compiler command line
 -   `clang-tidy.lintOnSave`: Whether or not to lint files when they are saved
@@ -42,4 +43,4 @@ This extension contributes the following commands:
 
 ## Known Issues
 
-[See the Github issues](https://github.com/notskm/vscode-clang-tidy/issues)
+[See the Github issues](https://github.com/zoey-ada/vscode-clang-tidy/issues)

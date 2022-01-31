@@ -18,6 +18,22 @@ function clangTidyArgs(files: string[], fixErrors: boolean) {
         args.push(`--checks=${checks.join(",")}`);
     }
 
+    const configFile = vscode.workspace
+        .getConfiguration("clang-tidy")
+        .get("configFile") as string;
+
+    if (configFile.length > 0) {
+        args.push(`--config-file=${configFile}`);
+    }
+
+    const includePaths = vscode.workspace
+        .getConfiguration("clang-tidy")
+        .get("includePaths") as Array<string>;
+
+    includePaths.forEach((arg) => {
+        args.push(`--include-directory=${arg}`);
+    });
+
     const compilerArgs = vscode.workspace
         .getConfiguration("clang-tidy")
         .get("compilerArgs") as Array<string>;
