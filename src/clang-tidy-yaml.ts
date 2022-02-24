@@ -14,6 +14,7 @@ export interface ClangTidyDiagnostic {
         Replacements: ClangTidyReplacement[];
         Severity: DiagnosticSeverity | DiagnosticSeverity.Warning;
     };
+    BuildDirectory?: string;
 }
 
 export interface ClangTidyReplacement {
@@ -42,6 +43,8 @@ export interface ClangTidyYaml {
                 FileOffset: number;
                 Replacements: ClangTidyReplacement[];
             };
+
+            BuildDirectory?: string;
         }
     ];
 }
