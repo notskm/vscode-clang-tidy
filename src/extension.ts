@@ -55,7 +55,13 @@ export function activate(context: vscode.ExtensionContext) {
             }
         })
     );
-    subscriptions.push(workspace.onDidOpenTextDocument(lintAndSetDiagnostics));
+    subscriptions.push(
+        workspace.onDidOpenTextDocument((doc) => {
+            if (workspace.getConfiguration("clang-tidy").get("lintOnOpen")) {
+                lintAndSetDiagnostics(doc);
+            }
+        })
+    );
     subscriptions.push(
         workspace.onDidCloseTextDocument((doc) =>
             diagnosticCollection.delete(doc.uri)
